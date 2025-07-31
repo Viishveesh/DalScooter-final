@@ -2,20 +2,26 @@ import json
 import boto3
 import os
 import logging
+from datetime import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 sns = boto3.client('sns')
 cognito = boto3.client('cognito-idp')
+dynamodb = boto3.resource('dynamodb')
 
 TOPIC_ARN = os.environ['SNS_TOPIC_ARN']
 USER_POOL_ID = os.environ['USER_POOL_ID']
+DDB_TABLE_NAME = os.environ['USER_LOGINS_TABLE_NAME']  # <-- Add this to Lambda env
+
+table = dynamodb.Table(DDB_TABLE_NAME)
 
 def handler(event, context):
     try:
         logger.info("Received event:")
         logger.info(json.dumps(event))
+        logger.info(f"Logging to DynamoDB table: {DDB_TABLE_NAME}")
 
         # This will actually be userId (sub), not the email
         user_id = event.get("email") or event.get("userEmail")
@@ -33,6 +39,7 @@ def handler(event, context):
         if not email_attr:
             raise ValueError("Email attribute not found for the user in Cognito.")
 
+        # Send SNS notification
         message = f"Hello {email_attr}, your login to DALScooter was successful!"
         subject = "DALScooter Login Notification"
 
@@ -42,13 +49,24 @@ def handler(event, context):
             Message=message
         )
 
+        # Log login activity to DynamoDB
+        login_time = datetime.utcnow().isoformat()
+
+        table.put_item(
+            Item={
+                'user_id': user_id,
+                'login_timestamp': login_time,
+                'email': email_attr
+            }
+        )
+
         return {
             'statusCode': 200,
-            'body': json.dumps({'message': 'Login email sent successfully'})
+            'body': json.dumps({'message': 'Login email sent and activity logged'})
         }
 
     except Exception as e:
-        logger.error(f"Error sending login email: {str(e)}", exc_info=True)
+        logger.error(f"Error handling login event: {str(e)}", exc_info=True)
         return {
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})

@@ -164,6 +164,27 @@ resource "aws_lambda_function" "registration_notification_lambda" {
   }
 }
 
+resource "aws_dynamodb_table" "user_logins" {
+  name           = "UserLogins"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "user_id"
+  range_key      = "login_timestamp"
+
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "login_timestamp"
+    type = "S"
+  }
+
+  tags = {
+    Name = "UserLogins"
+  }
+}
+
 resource "aws_lambda_function" "login_notification_lambda" {
   function_name = "DALScooterLoginNotificationLambda"
   filename      = data.archive_file.login_notification_lambda_zip.output_path
@@ -175,6 +196,7 @@ resource "aws_lambda_function" "login_notification_lambda" {
     variables = {
       SNS_TOPIC_ARN = aws_sns_topic.authentication_sns_topic.arn
       USER_POOL_ID  = aws_cognito_user_pool.dalscooter_user_pool.id
+      DDB_TABLE_NAME = aws_dynamodb_table.user_logins.name
     }
   }
 }

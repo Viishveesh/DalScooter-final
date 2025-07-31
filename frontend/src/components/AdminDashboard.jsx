@@ -29,12 +29,10 @@ export default function AdminDashboard() {
     }
   }, [])
 
-  // Auto-hide welcome notification after 10 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowWelcome(false)
     }, 10000)
-
     return () => clearTimeout(timer)
   }, [])
 
@@ -44,6 +42,23 @@ export default function AdminDashboard() {
     localStorage.removeItem("userGroup")
     navigate("/")
   }
+
+  const [userCount, setUserCount] = useState(null)
+
+  useEffect(() => {
+    const fetchUserCount = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ACTIVITY_LOG_API}/user-count`)
+        const data = await response.json()
+        if (data.total_users !== undefined) {
+          setUserCount(data.total_users)
+        }
+      } catch (err) {
+        console.error("Failed to fetch user count:", err)
+      }
+    }
+    fetchUserCount()
+  }, [])
 
   const adminQuickLinks = [
     {
@@ -87,7 +102,7 @@ export default function AdminDashboard() {
   const quickStats = [
     {
       title: "Total Users",
-      value: "1,247",
+      value: userCount !== null ? userCount.toLocaleString() : "Loading...",
       change: "+12%",
       icon: Users,
       color: "text-blue-600",
@@ -155,7 +170,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Notification Banner - Auto-hide after 10 seconds */}
+        {/* Notification Banner */}
         {showWelcome && (
           <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-xl mb-6 shadow-lg relative">
             <button
@@ -200,7 +215,7 @@ export default function AdminDashboard() {
           {quickStats.map((stat, index) => (
             <div
               key={index}
-              className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl shadow-xl p-6 border border-slate-600 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+              className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl shadow-xl p-6 border border-slate-600 hover-shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-xl ${stat.bgColor}`}>
@@ -214,6 +229,23 @@ export default function AdminDashboard() {
               <p className="text-white text-2xl font-bold">{stat.value}</p>
             </div>
           ))}
+        </div>
+
+        {/* Looker Studio Dashboard */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl shadow-2xl p-8 mb-8 border border-slate-600">
+          <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <BarChart3 className="h-8 w-8 mr-3 text-indigo-400" />
+            User Analytics Dashboard
+          </h3>
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src="https://lookerstudio.google.com/embed/reporting/78e33330-95c6-46bb-8a3e-9b71a2d83be2/page/cQGTF"
+              frameBorder="0"
+              style={{ border: 0 }}
+              allowFullScreen
+            ></iframe>
+          </div>
         </div>
 
         {/* Admin Quick Links */}

@@ -19,6 +19,7 @@ export default function Register() {
   const [answer, setAnswer] = useState("")
   const [message, setMessage] = useState("")
   const navigate = useNavigate()
+  const [role, setRole] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = (e) => {
@@ -39,6 +40,7 @@ export default function Register() {
             question,
             answer,
             email,
+            role,
           }),
         })
         // navigate("/confirm")
@@ -133,6 +135,20 @@ export default function Register() {
                 required
               />
             </div>
+
+            <div className="relative">
+    <select
+      value={role}
+      onChange={(e) => setRole(e.target.value)}
+      className="w-full px-6 py-4 border-2 border-slate-300/50 rounded-xl text-lg bg-white/70 backdrop-blur-sm transition-all duration-300 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 focus:outline-none focus:bg-white/90 text-slate-700 shadow-sm"
+      required
+    >
+      <option value="">Select Role</option>
+      <option value="user">User</option>
+      <option value="franchise">Franchise</option>
+    </select>
+  </div>
+
 
             <button
               type="submit"

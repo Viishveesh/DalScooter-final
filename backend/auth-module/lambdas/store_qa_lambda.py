@@ -27,11 +27,14 @@ def handler(event, context):
         question = body['question']
         answer = body['answer']
         email = body['email']
+        role = body.get('role')  # Default to 'user' if not provided
 
-        # Store Q&A in DynamoDB
-        logger.info(f"Storing in DynamoDB for userId: {user_id}")
+        # Store in DynamoDB
+        logger.info(f"Storing user info in DynamoDB for userId: {user_id}")
         table.put_item(Item={
             'userId': user_id,
+            'email': email,
+            'role': role,
             'securityQuestion': question,
             'securityAnswer': answer
         })
@@ -48,7 +51,7 @@ def handler(event, context):
 
         # Send message to SQS for delayed welcome
         if QUEUE_URL:
-            logger.info(f"Sending to SQS queue: {QUEUE_URL}")
+            logger.info(f"Sending registration message to SQS queue: {QUEUE_URL}")
             sqs.send_message(
                 QueueUrl=QUEUE_URL,
                 MessageBody=json.dumps({
@@ -59,7 +62,7 @@ def handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({'message': 'Q&A stored successfully. Confirmation email sent.'})
+            'body': json.dumps({'message': 'Q&A and role stored successfully. Confirmation email sent.'})
         }
 
     except Exception as e:

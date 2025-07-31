@@ -6,6 +6,7 @@ provider "aws" {
 module "auth_module" {
   source     = "../auth-module/terraform"
   aws_region = var.aws_region
+  cognito_user_pool_id = var.cognito_user_pool_id
 }
 
 module "amplify_deploy" {
@@ -36,6 +37,13 @@ module "feedback_module" {
   aws_region                    = var.aws_region
   cognito_user_pool_id          = module.auth_module.user_pool_id
   cognito_user_pool_client_id   = module.auth_module.user_pool_client_id
+}
+
+# Feedback Module
+module "dashboard_module" {
+  source                        = "../dashboard-module/terraform"
+  aws_region                    = var.aws_region
+  cognito_user_pool_id          = module.auth_module.user_pool_id
 }
 
 module "message_module" {

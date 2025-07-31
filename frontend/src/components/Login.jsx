@@ -29,6 +29,24 @@ export default function Login() {
   const [message, setMessage] = useState("")
   const navigate = useNavigate()
 
+  const logLoginActivity = async ({ username, success, message }) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_ACTIVITY_LOG_API}/log-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, success, message }), // Change "username" to "user_id"
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const result = await response.json();
+    console.log("Log activity response:", result);
+  } catch (error) {
+    console.error("Failed to log login activity:", error);
+    setMessage(`Failed to log login activity: ${error.message}`);
+  }
+};
+
   const handleSubmit = (e) => {
     e.preventDefault()
     initiateUserPasswordAuth()
@@ -111,6 +129,10 @@ export default function Login() {
         const isAdmin = groups.includes("BikeFranchise")
         const userType = isAdmin ? "Franchise Operator" : "Registered User"
         setMessage(`Login successful! Welcome ${userType}. You will receive a notification shortly.`)
+        const successMessage = `Login successful! Welcome ${userType}.`
+
+        //  Log successful login
+        await logLoginActivity({ username: email, success: true, message: successMessage })
 
         // Simulate notification (in real app, this would be sent via SNS/SES)
         setTimeout(() => {
@@ -123,8 +145,11 @@ export default function Login() {
         }, 2000)
       }
     } catch (err) {
+      const errorMessage = err.message || "Challenge failed."
       console.error("Challenge failed:", err)
       setMessage(err.message || "Challenge failed.")
+       setMessage(errorMessage)
+      await logLoginActivity({ username: email, success: false, message: errorMessage })
     }
   }
 

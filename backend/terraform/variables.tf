@@ -9,3 +9,9 @@ variable "github_token" {
   type        = string
   sensitive   = true
 }
+
+variable "cognito_user_pool_id" {
+  description = "The Cognito User Pool ID"
+  type        = string
+  default     = ""
+}
