@@ -43,3 +43,8 @@ variable "booking_api" {
   description = "Booking CRUD API"
   type        = string
 }
+
+variable "activity_api" {
+  description = "Login activity api"
+  type        = string
+}

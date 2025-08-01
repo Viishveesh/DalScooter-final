@@ -41,6 +41,7 @@ EOT
     VITE_FEEDBACK_API             = var.feedback_api
     VITE_COMPLAINT_API            = var.complaint_api
     VITE_BOOKING_API              = var.booking_api
+    VITE_ACTIVITY_LOG_API         = var.activity_api
   }
 }
 

@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 provider "aws" {
   region = "us-east-1"
 }
@@ -24,7 +26,7 @@ data "archive_file" "log_user_login_zip" {
 
 resource "aws_lambda_function" "get_user_count" {
   function_name = "get_user_count"
-  role          = "arn:aws:iam::837937899798:role/LabRole"
+  role          = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
   runtime       = "python3.12"
   handler       = "get_user_count.lambda_handler"
   filename      = data.archive_file.get_user_count_zip.output_path
@@ -38,7 +40,7 @@ resource "aws_lambda_function" "get_user_count" {
 
 resource "aws_lambda_function" "log_user_login" {
   function_name = "log_user_login"
-  role          = "arn:aws:iam::837937899798:role/LabRole"
+  role          = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
   runtime       = "python3.12"
   handler       = "log_user_login.lambda_handler"
   filename      = data.archive_file.log_user_login_zip.output_path
