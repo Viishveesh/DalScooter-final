@@ -5,8 +5,10 @@ import json
 dynamodb = boto3.resource("dynamodb")
 users_table_name = os.environ.get("DYNAMODB_TABLE_NAME", "DALScooterUsers")
 logins_table_name = os.environ.get("LOGIN_TABLE_NAME", "UserLogins")
+bookings_table_name = os.environ.get("BOOKINGS_TABLE_NAME", "DALScooterBookings")
 users_table = dynamodb.Table(users_table_name)
 logins_table = dynamodb.Table(logins_table_name)
+bookings_table = dynamodb.Table(bookings_table_name)
 
 def lambda_handler(event, context):
     try:
@@ -23,6 +25,20 @@ def lambda_handler(event, context):
                 ExclusiveStartKey=response['LastEvaluatedKey']
             )
             user_count += len(response.get("Items", []))
+
+        # Scan DALScooterBookings table for bookings with status = "active"
+        bookings_response = bookings_table.scan(
+            FilterExpression=boto3.dynamodb.conditions.Attr("status").eq("active")
+        )
+        active_bookings_count = len(bookings_response.get("Items", []))
+
+        # Handle pagination for bookings
+        while 'LastEvaluatedKey' in bookings_response:
+            bookings_response = bookings_table.scan(
+                FilterExpression=boto3.dynamodb.conditions.Attr("status").eq("active"),
+                ExclusiveStartKey=bookings_response['LastEvaluatedKey']
+            )
+            active_bookings_count += len(bookings_response.get("Items", []))
 
         # Scan UserLogins table for login activity
         login_response = logins_table.scan(
@@ -64,6 +80,7 @@ def lambda_handler(event, context):
             },
             "body": json.dumps({
                 "total_users": user_count,
+                "total_active_bookings": active_bookings_count,
                 "login_activity": login_activity
             })
         }

@@ -10,8 +10,8 @@ provider "aws" {
 
 data "archive_file" "get_user_count_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambdas/get_user_count.py"
-  output_path = "${path.module}/../lambdas/get_user_count.zip"
+  source_file = "${path.module}/../lambdas/get_dashboard_data.py"
+  output_path = "${path.module}/../lambdas/get_dashboard_data.zip"
 }
 
 data "archive_file" "log_user_login_zip" {
