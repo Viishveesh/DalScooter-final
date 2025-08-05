@@ -1,0 +1,82 @@
+{
+  "botName": "DALScooterBot",
+  "description": "AI assistant for DALScooter rental service",
+  "intents": [
+    {
+      "intentName": "BookScooter",
+      "description": "Intent for booking a scooter",
+      "sampleUtterances": [
+        "I want to book a scooter",
+        "Book a scooter for me",
+        "I need to rent a scooter",
+        "Can I book a scooter?",
+        "I'd like to rent a scooter"
+      ],
+      "slots": [
+        {
+          "name": "Duration",
+          "description": "Duration of rental",
+          "slotType": "AMAZON.Duration",
+          "required": true
+        },
+        {
+          "name": "Location",
+          "description": "Pickup location",
+          "slotType": "AMAZON.AlphaNumeric",
+          "required": true
+        }
+      ]
+    },
+    {
+      "intentName": "CheckBooking",
+      "description": "Intent for checking booking status",
+      "sampleUtterances": [
+        "Check my booking",
+        "What's my booking status?",
+        "Show my bookings",
+        "I want to see my bookings",
+        "Check booking status"
+      ]
+    },
+    {
+      "intentName": "CancelBooking",
+      "description": "Intent for canceling a booking",
+      "sampleUtterances": [
+        "Cancel my booking",
+        "I want to cancel",
+        "Cancel booking",
+        "I need to cancel my rental",
+        "Cancel the scooter rental"
+      ],
+      "slots": [
+        {
+          "name": "BookingId",
+          "description": "Booking ID to cancel",
+          "slotType": "AMAZON.AlphaNumeric",
+          "required": true
+        }
+      ]
+    },
+    {
+      "intentName": "GetHelp",
+      "description": "Intent for getting help",
+      "sampleUtterances": [
+        "I need help",
+        "Help me",
+        "What can you do?",
+        "How does this work?",
+        "I need assistance"
+      ]
+    },
+    {
+      "intentName": "FallbackIntent",
+      "description": "Fallback intent for unrecognized inputs",
+      "sampleUtterances": [
+        "I don't understand",
+        "What did you say?",
+        "Can you repeat that?",
+        "I'm confused"
+      ]
+    }
+  ]
+} 

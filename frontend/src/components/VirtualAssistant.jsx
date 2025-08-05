@@ -19,23 +19,6 @@ export default function VirtualAssistant() {
   const userGroups = getUserGroup()
   const isAdmin = userGroups.includes("BikeFranchise")
 
-  const quickQuestions = isAdmin
-    ? [
-        "How do I add a new vehicle?",
-        "How to get booking details?",
-        "How to update rental rates?",
-        "How to manage discounts?",
-        "How to handle customer issues?",
-      ]
-    : [
-        "How do I register?",
-        "What vehicle types are available?",
-        "How do I book a ride?",
-        "What are the rental rates?",
-        "How do I provide feedback?",
-        "How to get my access code?",
-      ]
-
   const handleSendMessage = (e) => {
     e.preventDefault()
     if (!inputMessage.trim()) return
@@ -66,53 +49,22 @@ export default function VirtualAssistant() {
   const getBotResponse = (userInput) => {
     const input = userInput.toLowerCase()
 
-    if (isAdmin) {
-      // Admin-specific responses
-      if (input.includes("add") && (input.includes("vehicle") || input.includes("bike"))) {
-        return "To add a new vehicle, go to Franchise Management → Vehicle Management → Add Vehicle. Fill in the vehicle type, model, access code, hourly rate, and features."
-      } else if (input.includes("booking") && (input.includes("reference") || input.includes("details"))) {
-        return "To get booking details by reference code, I can help you find the bike number and usage duration. Please provide the booking reference code (format: BK-XXXXXX)."
-      } else if (input.includes("rate") || input.includes("price") || input.includes("rental")) {
-        return "To update rental rates, go to Franchise Management → select the vehicle → edit hourly rate. Current rates: eBike ($12/hr), Gyroscooter ($15/hr), Segway ($18/hr)."
-      } else if (input.includes("discount")) {
-        return "To manage discounts, go to Franchise Management → Vehicle Management → select vehicle → update discount field. You can set percentage discounts for each vehicle type."
-      } else if (input.includes("customer") && input.includes("issue")) {
-        return "For customer issues, check the issue tickets in the admin panel. You can respond to customer communications asynchronously through the messaging system."
-      } else if (input.match(/^BK-\d{6}$/)) {
-        // Simulate booking lookup
-        return `Booking Reference ${input}: Vehicle - eBike #EB001, Access Code: 4829, Duration: 2 hours (10:00 AM - 12:00 PM), Location: Halifax Downtown`
-      }
-    } else {
-      // Regular user responses
-      if (input.includes("register") || input.includes("sign up")) {
-        return 'To register, click on the "Register" button on the login page. You\'ll need to provide your email, create a password, and answer a security question.'
-      } else if (input.includes("book") || input.includes("reserve")) {
-        return "To book a ride, go to the Booking page from your dashboard. Select your vehicle type, date, time, and pickup location. Daily bookings are available."
-      } else if (input.includes("access code") || input.includes("booking reference")) {
-        return "Please provide your booking reference number (format: BK-XXXXXX), and I can help you find your vehicle access code and usage duration."
-      } else if (input.match(/^BK-\d{6}$/)) {
-        // Simulate booking lookup for regular users
-        return `Your Booking ${input}: Access Code: 4829, Vehicle: eBike at Halifax Downtown, Duration: 2 hours. Enjoy your ride!`
-      } else if (input.includes("feedback") || input.includes("review")) {
-        return "You can provide feedback through the Feedback page in your dashboard. Rate your experience and help us improve our service!"
-      }
-    }
-
-    // Common responses
-    if (input.includes("vehicle") || input.includes("bike") || input.includes("scooter")) {
+    if (input.includes("register")) {
+      return "To register, click on the 'Register' button on the login page. You'll need to provide your email, create a password, and answer a security question."
+    } else if (input.includes("vehicle") || input.includes("bike") || input.includes("scooter")) {
       return "We offer three types of vehicles: eBikes ($12/hr), Gyroscooters ($15/hr), and Segways ($18/hr). All are eco-friendly and perfect for campus travel!"
-    } else if (input.includes("rate") || input.includes("price") || input.includes("cost")) {
-      return "Our rental rates are: eBike - $12/hr, Gyroscooter - $15/hr, Segway - $18/hr. Special discounts may apply!"
-    } else if (input.includes("navigate") || input.includes("help")) {
-      return isAdmin
-        ? "I can help you navigate the admin panel, manage vehicles, view analytics, handle bookings, and respond to customer feedback. What would you like to do?"
-        : "I can help you navigate the site, book rides, provide feedback, and find your booking information. What would you like to know?"
+    } else if (input.includes("book") || input.includes("ride")) {
+      return "To book a ride, go to the Booking page from your dashboard. Select your vehicle type, date, time, and pickup location. Daily bookings are available."
     } else {
-      return isAdmin
-        ? "I'm here to help with franchise operations! You can ask me about adding vehicles, managing bookings, updating rates, handling customer issues, or navigating the admin panel."
-        : "I'm here to help with DALScooter services! You can ask me about registration, booking, vehicle types, rates, feedback, or finding your access codes."
+      return "I'm here to help with DALScooter services! You can ask me about registration, booking, vehicle types, rates, feedback, or finding your access codes."
     }
   }
+
+  const quickQuestions = [
+    "How do I register?",
+    "What vehicle types are available?",
+    "How do I book a ride?",
+  ]
 
   const handleQuickQuestion = (question) => {
     const userMessage = {
@@ -207,7 +159,7 @@ export default function VirtualAssistant() {
           {/* Quick Questions */}
           <div className="px-4 pb-2">
             <div className="flex flex-wrap gap-1">
-              {quickQuestions.slice(0, 3).map((question, index) => (
+              {quickQuestions.map((question, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickQuestion(question)}
