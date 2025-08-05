@@ -4,9 +4,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# ==========================
 # ZIP Lambda Functions
-# ==========================
 
 data "archive_file" "get_user_count_zip" {
   type        = "zip"
@@ -20,9 +18,7 @@ data "archive_file" "log_user_login_zip" {
   output_path = "${path.module}/../lambdas/log_user_login.zip"
 }
 
-# ==========================
 # Lambda Functions
-# ==========================
 
 resource "aws_lambda_function" "get_user_count" {
   function_name = "get_user_count"
@@ -52,9 +48,7 @@ resource "aws_lambda_function" "log_user_login" {
   }
 }
 
-# ==========================
 # API Gateway
-# ==========================
 
 resource "aws_apigatewayv2_api" "user_api" {
   name          = "UserCountAPI"
@@ -69,9 +63,7 @@ resource "aws_apigatewayv2_api" "user_api" {
   }
 }
 
-# ==========================
 # Integrations
-# ==========================
 
 resource "aws_apigatewayv2_integration" "user_count_integration" {
   api_id                 = aws_apigatewayv2_api.user_api.id
@@ -89,9 +81,8 @@ resource "aws_apigatewayv2_integration" "log_user_login_integration" {
   payload_format_version = "2.0"
 }
 
-# ==========================
+
 # Routes
-# ==========================
 
 resource "aws_apigatewayv2_route" "user_count_route" {
   api_id    = aws_apigatewayv2_api.user_api.id
@@ -105,9 +96,7 @@ resource "aws_apigatewayv2_route" "log_user_login_route" {
   target    = "integrations/${aws_apigatewayv2_integration.log_user_login_integration.id}"
 }
 
-# ==========================
 # Lambda Permissions
-# ==========================
 
 resource "aws_lambda_permission" "allow_apigw_get_user_count" {
   statement_id  = "AllowAPIGatewayInvokeUserCount"
@@ -125,9 +114,7 @@ resource "aws_lambda_permission" "allow_apigw_log_user_login" {
   source_arn    = "${aws_apigatewayv2_api.user_api.execution_arn}/*/*"
 }
 
-# ==========================
 # Stage
-# ==========================
 
 resource "aws_apigatewayv2_stage" "default_stage" {
   api_id      = aws_apigatewayv2_api.user_api.id

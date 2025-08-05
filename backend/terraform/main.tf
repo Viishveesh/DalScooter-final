@@ -40,7 +40,7 @@ module "feedback_module" {
   cognito_user_pool_client_id   = module.auth_module.user_pool_client_id
 }
 
-# Feedback Module
+# Dashboard Module
 module "dashboard_module" {
   source                        = "../dashboard-module/terraform"
   aws_region                    = var.aws_region

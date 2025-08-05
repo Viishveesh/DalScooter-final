@@ -164,6 +164,7 @@ resource "aws_lambda_function" "registration_notification_lambda" {
   }
 }
 
+# user login attempts 
 resource "aws_dynamodb_table" "user_logins" {
   name           = "UserLogins"
   billing_mode   = "PAY_PER_REQUEST"

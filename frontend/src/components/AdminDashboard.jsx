@@ -21,6 +21,8 @@ export default function AdminDashboard() {
   const [adminEmail, setAdminEmail] = useState("")
   const [showWelcome, setShowWelcome] = useState(true)
   const navigate = useNavigate()
+  const [userCount, setUserCount] = useState(null)
+  const [activeBookingsCount, setActiveBookingsCount] = useState(null)
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail")
@@ -43,21 +45,22 @@ export default function AdminDashboard() {
     navigate("/")
   }
 
-  const [userCount, setUserCount] = useState(null)
-
   useEffect(() => {
-    const fetchUserCount = async () => {
+    const fetchData = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_ACTIVITY_LOG_API}/user-count`)
         const data = await response.json()
         if (data.total_users !== undefined) {
           setUserCount(data.total_users)
         }
+        if (data.total_active_bookings !== undefined) {
+          setActiveBookingsCount(data.total_active_bookings)
+        }
       } catch (err) {
-        console.error("Failed to fetch user count:", err)
+        console.error("Failed to fetch data:", err)
       }
     }
-    fetchUserCount()
+    fetchData()
   }, [])
 
   const adminQuickLinks = [
@@ -110,7 +113,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Active Bookings",
-      value: "89",
+      value: activeBookingsCount !== null ? activeBookingsCount.toLocaleString() : "Loading...",
       change: "+5%",
       icon: Activity,
       color: "text-green-600",
@@ -118,20 +121,12 @@ export default function AdminDashboard() {
     },
     {
       title: "Revenue Today",
-      value: "$2,340",
+      value: "$60",
       change: "+18%",
       icon: DollarSign,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
-    },
-    {
-      title: "Avg Rating",
-      value: "4.8",
-      change: "+0.2",
-      icon: Star,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100",
-    },
+    }
   ]
 
   return (
@@ -179,7 +174,7 @@ export default function AdminDashboard() {
             >
               ×
             </button>
-            <p className="font-semibold">✅ Welcome! You have successfully signed in as a Franchise Operator.</p>
+            <p className="font-semibold">Welcome! You have successfully signed in as a Franchise Operator.</p>
             <p className="text-green-100 text-sm">
               You have administrative privileges and multi-factor authentication is enabled.
             </p>
@@ -211,7 +206,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {quickStats.map((stat, index) => (
             <div
               key={index}

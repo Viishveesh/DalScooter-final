@@ -9,13 +9,13 @@ def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
     body = json.loads(event["body"])
     
-    user_id = body.get("username")  # Map frontend's "username" to "user_id"
+    user_id = body.get("username")
     success = body.get("success")
     message = body.get("message")
     timestamp = datetime.utcnow().isoformat()
 
     item = {
-        "user_id": user_id,  # Use "user_id" to match the table's partition key
+        "user_id": user_id,
         "login_timestamp": timestamp,
         "success": success,
         "message": message,

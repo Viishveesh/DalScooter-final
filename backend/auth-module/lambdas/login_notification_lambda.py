@@ -13,7 +13,7 @@ dynamodb = boto3.resource('dynamodb')
 
 TOPIC_ARN = os.environ['SNS_TOPIC_ARN']
 USER_POOL_ID = os.environ['USER_POOL_ID']
-DDB_TABLE_NAME = os.environ['USER_LOGINS_TABLE_NAME']  # <-- Add this to Lambda env
+DDB_TABLE_NAME = os.environ['USER_LOGINS_TABLE_NAME']
 
 table = dynamodb.Table(DDB_TABLE_NAME)
 
