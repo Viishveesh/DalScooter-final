@@ -21,7 +21,7 @@ module "amplify_deploy" {
   feedback_api              = module.feedback_module.feedback_api_endpoint
   complaint_api             = module.message_module.complaint_api_endpoint
   booking_api               = module.booking_module.booking_api_gateway_endpoint
-  acitivity_api             = module.dashboard_module.activity_api_gateway_endpoint
+  activity_api             = module.dashboard_module.activity_api_gateway_endpoint
 }
 
 # Bike Module (Admin & Guest CRUD access)
