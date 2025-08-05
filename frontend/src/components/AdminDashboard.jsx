@@ -174,7 +174,7 @@ export default function AdminDashboard() {
             >
               ×
             </button>
-            <p className="font-semibold">✅ Welcome! You have successfully signed in as a Franchise Operator.</p>
+            <p className="font-semibold">Welcome! You have successfully signed in as a Franchise Operator.</p>
             <p className="text-green-100 text-sm">
               You have administrative privileges and multi-factor authentication is enabled.
             </p>

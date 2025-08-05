@@ -6,7 +6,7 @@ data "aws_caller_identity" "current" {}
 
 resource "aws_amplify_app" "dalscooter_app" {
   name         = "dalscooter-frontend"
-  repository   = "https://github.com/Viishveesh/DalScooter-final"
+  repository   = "https://github.com/Viishveesh/DalScooter-final.git"
   access_token = var.github_token
 
   build_spec = <<EOT
