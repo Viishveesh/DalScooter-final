@@ -13,81 +13,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# IAM Role for Lex Bot
-resource "aws_iam_role" "lex_bot_role" {
-  name = "DALScooterLexBotRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lex.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# IAM Policy for Lex Bot
-resource "aws_iam_role_policy" "lex_bot_policy" {
-  name = "DALScooterLexBotPolicy"
-  role = aws_iam_role.lex_bot_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "lex:RecognizeText",
-          "lex:RecognizeUtterance",
-          "lex:StartConversation"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-# Lambda Function for Lex Handler
-resource "aws_lambda_function" "lex_handler" {
-  filename         = "../lambda/lex_handler.zip"
-  function_name    = "DALScooterLexHandler"
-  role            = aws_iam_role.lambda_role.arn
-  handler         = "lex_handler.lambda_handler"
-  runtime         = "python3.9"
-  timeout         = 30
-
-  environment {
-    variables = {
-      LEX_BOT_ID        = aws_lexv2_bot.dalscooter_bot.id
-      LEX_BOT_ALIAS_ID  = aws_lexv2_bot_alias.dalscooter_alias.id
-      BOOKINGS_TABLE_NAME = var.bookings_table_name
-      USERS_TABLE_NAME   = var.users_table_name
-    }
-  }
-}
-
-# Lambda Function for Lex Fulfillment
-resource "aws_lambda_function" "lex_fulfillment" {
-  filename         = "../personal-account-lambda/lex_fulfillment_handler.zip"
-  function_name    = "DALScooterLexFulfillment"
-  role            = aws_iam_role.lambda_role.arn
-  handler         = "lex_fulfillment_handler.lambda_handler"
-  runtime         = "python3.9"
-  timeout         = 30
-
-  environment {
-    variables = {
-      BOOKINGS_TABLE_NAME = var.bookings_table_name
-      USERS_TABLE_NAME   = var.users_table_name
-    }
-  }
-}
-
 # IAM Role for Lambda Functions
 resource "aws_iam_role" "lambda_role" {
   name = "DALScooterLexLambdaRole"
@@ -117,9 +42,6 @@ resource "aws_iam_role_policy" "lambda_policy" {
       {
         Effect = "Allow"
         Action = [
-          "lexv2-runtime:RecognizeText",
-          "lexv2-runtime:RecognizeUtterance",
-          "lexv2-runtime:StartConversation",
           "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
@@ -142,20 +64,21 @@ resource "aws_iam_role_policy" "lambda_policy" {
   })
 }
 
-# Lex Bot
-resource "aws_lexv2_bot" "dalscooter_bot" {
-  name = "DALScooterBot"
-  description = "AI assistant for DALScooter rental service"
-  role_arn = aws_iam_role.lex_bot_role.arn
-  data_privacy = "PRIVACY_POLICY"
-  idle_session_ttl_in_seconds = 300
-}
+# Lambda Function for Lex Handler
+resource "aws_lambda_function" "lex_handler" {
+  filename         = "../lambda/lex_handler.py"
+  function_name    = "DALScooterLexHandler"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "lex_handler.lambda_handler"
+  runtime         = "python3.9"
+  timeout         = 30
 
-# Lex Bot Alias
-resource "aws_lexv2_bot_alias" "dalscooter_alias" {
-  bot_id = aws_lexv2_bot.dalscooter_bot.id
-  bot_alias_name = "DALScooterAlias"
-  description = "Production alias for DALScooter bot"
+  environment {
+    variables = {
+      BOOKINGS_TABLE_NAME = var.bookings_table_name
+      USERS_TABLE_NAME   = var.users_table_name
+    }
+  }
 }
 
 # API Gateway for Lex Integration
