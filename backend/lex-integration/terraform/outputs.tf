@@ -10,6 +10,11 @@ output "lex_handler_lambda_arn" {
   value       = aws_lambda_function.lex_handler.arn
 }
 
+output "lex_fulfillment_handler_arn" {
+  description = "ARN of the Lex fulfillment handler Lambda function"
+  value       = aws_lambda_function.lex_fulfillment_handler.arn
+}
+
 output "lex_lambda_role_arn" {
   description = "ARN of the Lex Lambda IAM role"
   value       = aws_iam_role.lambda_role.arn

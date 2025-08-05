@@ -15,13 +15,51 @@ export default function VirtualAssistant() {
     },
   ])
   const [inputMessage, setInputMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const userGroups = getUserGroup()
   const isAdmin = userGroups.includes("BikeFranchise")
 
-  const handleSendMessage = (e) => {
+  // Lambda function endpoint (you'll need to update this with your actual endpoint)
+  const LEX_API_URL = import.meta.env.VITE_LEX_API_URL || 'https://your-lex-api-gateway-url.amazonaws.com/prod/lex'
+
+  const callLambdaFunction = async (userInput) => {
+    try {
+      console.log('Calling Lambda function with URL:', LEX_API_URL)
+      console.log('Request payload:', { message: userInput, userId: localStorage.getItem('userEmail') || 'guest', sessionId: `session_${Date.now()}` })
+      
+      const response = await fetch(LEX_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userInput,
+          userId: localStorage.getItem('userEmail') || 'guest',
+          sessionId: `session_${Date.now()}`
+        })
+      })
+
+      console.log('Response status:', response.status)
+      console.log('Response headers:', response.headers)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Response data:', data)
+      return data.message || "I'm sorry, I couldn't process your request. Please try again."
+    } catch (error) {
+      console.error('Error calling Lambda function:', error)
+      // Return error message instead of fallback
+      return "I'm sorry, I'm having trouble connecting to my services right now. Please try again later."
+    }
+  }
+
+  const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!inputMessage.trim()) return
+    if (!inputMessage.trim() || isLoading) return
 
     const userMessage = {
       id: messages.length + 1,
@@ -31,32 +69,32 @@ export default function VirtualAssistant() {
     }
 
     setMessages([...messages, userMessage])
+    setIsLoading(true)
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse = {
+    try {
+      // Call Lambda function
+      const botResponse = await callLambdaFunction(inputMessage)
+      
+      const botMessage = {
         id: messages.length + 2,
         type: "bot",
-        message: getBotResponse(inputMessage),
+        message: botResponse,
         timestamp: new Date(),
       }
-      setMessages((prev) => [...prev, botResponse])
-    }, 1000)
-
-    setInputMessage("")
-  }
-
-  const getBotResponse = (userInput) => {
-    const input = userInput.toLowerCase()
-
-    if (input.includes("register")) {
-      return "To register, click on the 'Register' button on the login page. You'll need to provide your email, create a password, and answer a security question."
-    } else if (input.includes("vehicle") || input.includes("bike") || input.includes("scooter")) {
-      return "We offer three types of vehicles: eBikes ($12/hr), Gyroscooters ($15/hr), and Segways ($18/hr). All are eco-friendly and perfect for campus travel!"
-    } else if (input.includes("book") || input.includes("ride")) {
-      return "To book a ride, go to the Booking page from your dashboard. Select your vehicle type, date, time, and pickup location. Daily bookings are available."
-    } else {
-      return "I'm here to help with DALScooter services! You can ask me about registration, booking, vehicle types, rates, feedback, or finding your access codes."
+      setMessages((prev) => [...prev, botMessage])
+    } catch (error) {
+      console.error('Error getting bot response:', error)
+      // Error response
+      const errorMessage = {
+        id: messages.length + 2,
+        type: "bot",
+        message: "I'm sorry, I'm having trouble connecting to my services right now. Please try again later.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+      setInputMessage("")
     }
   }
 
@@ -66,7 +104,7 @@ export default function VirtualAssistant() {
     "How do I book a ride?",
   ]
 
-  const handleQuickQuestion = (question) => {
+  const handleQuickQuestion = async (question) => {
     const userMessage = {
       id: messages.length + 1,
       type: "user",
@@ -75,16 +113,30 @@ export default function VirtualAssistant() {
     }
 
     setMessages([...messages, userMessage])
+    setIsLoading(true)
 
-    setTimeout(() => {
-      const botResponse = {
+    try {
+      const botResponse = await callLambdaFunction(question)
+      
+      const botMessage = {
         id: messages.length + 2,
         type: "bot",
-        message: getBotResponse(question),
+        message: botResponse,
         timestamp: new Date(),
       }
-      setMessages((prev) => [...prev, botResponse])
-    }, 1000)
+      setMessages((prev) => [...prev, botMessage])
+    } catch (error) {
+      console.error('Error getting bot response:', error)
+      const errorMessage = {
+        id: messages.length + 2,
+        type: "bot",
+        message: "I'm sorry, I'm having trouble connecting to my services right now. Please try again later.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -103,7 +155,7 @@ export default function VirtualAssistant() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-96 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 flex flex-col z-40">
+        <div className="fixed bottom-24 right-6 w-[33.6rem] h-[28.8rem] bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 flex flex-col z-40">
           {/* Header */}
           <div
             className={`p-4 rounded-t-2xl text-white ${
@@ -154,6 +206,16 @@ export default function VirtualAssistant() {
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex items-start space-x-2">
+                <div className="p-2 rounded-full bg-slate-200">
+                  <Bot className="h-4 w-4 text-slate-600" />
+                </div>
+                <div className="max-w-xs p-3 rounded-2xl bg-slate-100 text-slate-800">
+                  <p className="text-sm">Thinking...</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Questions */}
@@ -163,7 +225,8 @@ export default function VirtualAssistant() {
                 <button
                   key={index}
                   onClick={() => handleQuickQuestion(question)}
-                  className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-full transition-colors duration-200"
+                  disabled={isLoading}
+                  className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-full transition-colors duration-200 disabled:opacity-50"
                 >
                   {question}
                 </button>
@@ -178,12 +241,14 @@ export default function VirtualAssistant() {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
+                disabled={isLoading}
                 placeholder={isAdmin ? "Ask about franchise operations..." : "Type your message..."}
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg bg-white/80 focus:border-indigo-500 focus:outline-none text-sm"
+                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg bg-white/80 focus:border-indigo-500 focus:outline-none text-sm disabled:opacity-50"
               />
               <button
                 type="submit"
-                className={`p-2 rounded-lg transition-colors duration-200 text-white ${
+                disabled={isLoading || !inputMessage.trim()}
+                className={`p-2 rounded-lg transition-colors duration-200 text-white disabled:opacity-50 ${
                   isAdmin ? "bg-red-500 hover:bg-red-600" : "bg-indigo-500 hover:bg-indigo-600"
                 }`}
               >

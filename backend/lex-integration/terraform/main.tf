@@ -15,7 +15,7 @@ provider "aws" {
 
 # IAM Role for Lambda Functions
 resource "aws_iam_role" "lambda_role" {
-  name = "DALScooterLexLambdaRole"
+  name = "DALScooterLexLambdaRoleV2"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -33,7 +33,7 @@ resource "aws_iam_role" "lambda_role" {
 
 # IAM Policy for Lambda Functions
 resource "aws_iam_role_policy" "lambda_policy" {
-  name = "DALScooterLexLambdaPolicy"
+  name = "DALScooterLexLambdaPolicyV2"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
@@ -64,9 +64,41 @@ resource "aws_iam_role_policy" "lambda_policy" {
   })
 }
 
+# Archive the personal account lambda
+data "archive_file" "lex_fulfillment_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../personal-account-lambda/lex_fulfillment_handler.py"
+  output_path = "${path.module}/../personal-account-lambda/lex_fulfillment_handler.zip"
+}
+
+# Lambda Function for Lex Fulfillment Handler
+resource "aws_lambda_function" "lex_fulfillment_handler" {
+  filename         = data.archive_file.lex_fulfillment_zip.output_path
+  function_name    = "DALScooterLexFulfillmentHandler"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "lex_fulfillment_handler.lambda_handler"
+  runtime         = "python3.9"
+  timeout         = 30
+
+  environment {
+    variables = {
+      BOOKINGS_TABLE_NAME = var.bookings_table_name
+      USERS_TABLE_NAME   = var.users_table_name
+    }
+  }
+}
+
+# Lambda Permission for Lex to invoke the fulfillment handler
+resource "aws_lambda_permission" "lex_invoke_fulfillment" {
+  statement_id  = "AllowLexInvokeFulfillment"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lex_fulfillment_handler.function_name
+  principal     = "lex.amazonaws.com"
+}
+
 # Lambda Function for Lex Handler
 resource "aws_lambda_function" "lex_handler" {
-  filename         = "../lambda/lex_handler.py"
+  filename         = "../lambda/lex_handler.zip"
   function_name    = "DALScooterLexHandler"
   role            = aws_iam_role.lambda_role.arn
   handler         = "lex_handler.lambda_handler"
