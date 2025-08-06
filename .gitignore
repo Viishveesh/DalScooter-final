@@ -1,0 +1,12 @@
+# Ignore IDE/editor config folders
+.idea/
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+
+node_modules/
+
+# Log files
+*.log
